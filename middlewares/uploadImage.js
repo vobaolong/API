@@ -28,16 +28,24 @@ const uploadPhoto = multer({
 
 const productImgResize = async (req, res, next) => {
   if (!req.files) return next();
+  console.log(1);
   await Promise.all(
     req.files.map(async (file) => {
+      const dirPath = 'public/images';
+      const outputPath = `${dirPath}/resized-${file.filename}`; // sử dụng một tên tệp khác cho tệp đầu ra
+      await fs.promises.mkdir(dirPath, { recursive: true });
       await sharp(file.path)
         .resize(300, 300)
-        .toFormat("jpeg")
+        .toFormat('jpeg')
         .jpeg({ quality: 90 })
-        .toFile(`public/images/products/${file.filename}`);
-      fs.unlinkSync(`public/images/products/${file.filename}`);
+        .toFile(outputPath);
+      if (fs.existsSync(outputPath)) {
+        fs.unlinkSync(file.path);
+        fs.renameSync(outputPath, `${dirPath}/${file.filename}`); // di chuyển tệp đầu ra đến vị trí cuối cùng
+      }
     })
   );
+  console.log(2);
   next();
 };
 
@@ -49,8 +57,8 @@ const blogImgResize = async (req, res, next) => {
         .resize(300, 300)
         .toFormat("jpeg")
         .jpeg({ quality: 90 })
-        .toFile(`public/images/blogs/${file.filename}`);
-      fs.unlinkSync(`public/images/blogs/${file.filename}`);
+        .toFile(`public/images/${file.filename}`);
+      fs.unlinkSync(`public/images/${file.filename}`);
     })
   );
   next();

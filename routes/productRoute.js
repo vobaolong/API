@@ -1,25 +1,40 @@
 const express = require("express");
+const router = express.Router();
 const {
-  createProduct,
-  getProduct,
   getAllProducts,
+  getAdminProducts,
+  createProduct,
   updateProduct,
   deleteProduct,
-  addToWishlist,
-  rating,
-} = require("../controller/productCtrl");
-const { isAdmin, authMiddleware } = require("../middlewares/authMiddleware");
-const router = express.Router();
+  getProductDetails,
+  createProductReview,
+  getProductReviews,
+  deleteReview,
+} = require("../controllers/productController");
+const {
+  isAuthenticatedUser,
+  authorizedRoles,
+} = require("./../middleware/auth");
 
-router.post("/", authMiddleware, isAdmin, createProduct);
+router.route("/products").get(getAllProducts);
+router
+  .route("/admin/products")
+  .get(isAuthenticatedUser, authorizedRoles("admin"), getAdminProducts);
 
-router.get("/:id", getProduct);
-router.put("/wishlist", authMiddleware, addToWishlist);
-router.put("/rating", authMiddleware, rating);
+router
+  .route("/admin/product/new")
+  .post(isAuthenticatedUser, authorizedRoles("admin"), createProduct);
 
-router.put("/:id", authMiddleware, isAdmin, updateProduct);
-router.delete("/:id", authMiddleware, isAdmin, deleteProduct);
+router
+  .route("/admin/product/:id")
+  .put(isAuthenticatedUser, authorizedRoles("admin"), updateProduct)
+  .delete(isAuthenticatedUser, authorizedRoles("admin"), deleteProduct);
 
-router.get("/", getAllProducts);
+router.route("/product/:id").get(getProductDetails);
+router.route("/review").put(isAuthenticatedUser, createProductReview);
+router
+  .route("/reviews")
+  .get(getProductReviews)
+  .delete(isAuthenticatedUser, deleteReview);
 
 module.exports = router;

@@ -1,67 +1,104 @@
-const mongoose = require("mongoose"); // Erase if already required
+const mongoose = require('mongoose');
 
-// Declare the Schema of the Mongo model
-var orderSchema = new mongoose.Schema(
+const orderSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     shippingInfo: {
-      fullName: { type: String, required: true },
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      other: { type: String, required: true },
+      fullname: {
+        type: String,
+        required: true,
+      },
+      address: {
+        type: String,
+        required: true,
+      },
+      city: {
+        type: String,
+        required: true,
+      },
+      phoneNo: {
+        type: Number,
+        required: true,
+      },
     },
-    paymentInfo: {
-      razorpayOrderId: { type: String, required: true },
-      razorpayPaymentId: { type: String, required: true },
-    },
+
     orderItems: [
       {
-        product: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Product",
-          required: true,
-        },
-        color: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Color",
-          required: true,
-        },
-        quantity: {
-          type: Number,
+        name: {
+          type: String,
           required: true,
         },
         price: {
           type: Number,
           required: true,
         },
+        quantity: {
+          type: Number,
+          required: true,
+        },
+        image: {
+          type: String,
+          required: true,
+        },
+        product: {
+          type: mongoose.Schema.ObjectId,
+          ref: 'Product',
+          required: true,
+        },
       },
     ],
+
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+
+    paymentInfo: {
+      id: {
+        type: String,
+      },
+      status: {
+        type: String,
+        required: true,
+      },
+    },
+
     paidAt: {
       type: Date,
-      default: Date.now(),
     },
+
+    itemsPrice: {
+      type: Number,
+      default: 0,
+      required: true,
+    },
+    taxPrice: {
+      type: Number,
+      default: 0,
+      required: true,
+    },
+    shippingPrice: {
+      type: Number,
+      default: 0,
+      required: true,
+    },
+
     totalPrice: {
       type: Number,
+      default: 0,
       required: true,
     },
-    totalPriceAfterDiscount: {
-      type: Number,
-      required: true,
-    },
+
     orderStatus: {
       type: String,
-      default: "Ordered",
+      required: true,
+      default: 'Processing',
     },
+    deliveredAt: Date,
   },
-
   {
     timestamps: true,
   }
 );
 
-//Export the model
-module.exports = mongoose.model("Order", orderSchema);
+module.exports = mongoose.model('Order', orderSchema);

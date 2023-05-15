@@ -1,50 +1,46 @@
-const mongoose = require("mongoose"); // Erase if already required
-const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
+const validator = require("validator");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-// Declare the Schema of the Mongo model
-var userSchema = new mongoose.Schema(
-  {
-    fullName: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    mobile: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      default: "user",
-    },
-    isBlocked: {
-      type: Boolean,
-      default: false,
-    },
-    cart: {
-      type: Array,
-      default: [],
-    },
-    address: {
-      type: String,
-    },
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-    refreshToken: {
-      type: String,
-    },
-    passwordChangedAt: Date,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
+
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, "Vui lòng tên của bạn"],
+    maxLength: [30, "Tên không vượt quá 30 ký tự"],
+    minLength: [5, "Tên phải dài hơn 5 ký tự"],
   },
+  email: {
+    type: String,
+    required: [true, "Vui lòng nhập Email của bạn"],
+    unique: true,
+    validate: [validator.isEmail, "Vui lòng nhập Email đúng định dạng"],
+  },
+  password: {
+    type: String,
+    required: [true, "Vui lòng nhập mật khẩu"],
+    select: false,
+  },
+  avatar: {
+    public_id: {
+      type: String,
+      required: true,
+    },
+    url: {
+      type: String,
+      required: true,
+    },
+  },
+
+  role: {
+    type: String,
+    default: "user",
+  },
+
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+},
   {
     timestamps: true,
   }
@@ -54,22 +50,37 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     next();
   }
-  const salt = await bcrypt.genSaltSync(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+
+  // bcrypting the password
+  this.password = await bcrypt.hash(this.password, 10);
 });
-userSchema.methods.isPasswordMatched = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+
+// JWT TOKEN
+userSchema.methods.getJWTToken = function () {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
 };
-userSchema.methods.createPasswordResetToken = async function () {
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  this.passwordResetToken = crypto
+
+// compare password
+userSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+// Generating Password Reset Token
+userSchema.methods.getResetPasswordToken = function () {
+  // Generating Token
+  const resetToken = crypto.randomBytes(20).toString("hex");
+
+  // Hash password và thêm resetPasswordToken vào userSchema
+  this.resetPasswordToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-  this.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 10 minutes
+
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
   return resetToken;
 };
 
-//Export the model
 module.exports = mongoose.model("User", userSchema);

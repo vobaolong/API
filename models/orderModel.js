@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
     shippingInfo: {
-      fullname: {
+      fullName: {
         type: String,
         required: true,
       },
@@ -41,7 +41,7 @@ const orderSchema = new mongoose.Schema(
         },
         product: {
           type: mongoose.Schema.ObjectId,
-          ref: 'Product',
+          ref: "Product",
           required: true,
         },
       },
@@ -49,7 +49,7 @@ const orderSchema = new mongoose.Schema(
 
     user: {
       type: mongoose.Schema.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
 
@@ -92,7 +92,7 @@ const orderSchema = new mongoose.Schema(
     orderStatus: {
       type: String,
       required: true,
-      default: 'Processing',
+      default: "Processing",
     },
     deliveredAt: Date,
   },
@@ -101,4 +101,4 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.model("Order", orderSchema);

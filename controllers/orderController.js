@@ -1,7 +1,7 @@
-const Order = require('../models/orderModel');
-const Product = require('../models/productModel');
-const ErrorHandler = require('../utils/errorHandler');
-const catchAsyncErrors = require('../middleware/catchAsyncErrors');
+const Order = require("../models/orderModel");
+const Product = require("../models/productModel");
+const ErrorHandler = require("../utils/errorHandler");
+const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 
 // Create new order
 exports.newOrder = catchAsyncErrors(async (req, res, next) => {
@@ -10,7 +10,6 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     orderItems,
     paymentInfo,
     itemsPrice,
-    taxPrice,
     shippingPrice,
     totalPrice,
   } = req.body;
@@ -20,7 +19,6 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     orderItems,
     paymentInfo,
     itemsPrice,
-    taxPrice,
     shippingPrice,
     totalPrice,
     paidAt: Date.now(),
@@ -40,13 +38,13 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
 // get Single order
 exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate(
-    'user',
-    'name email'
+    "user",
+    "name email"
   );
 
   if (!order) {
     return next(
-      new ErrorHandler('Không tìm thấy đơn hàng với mã đơn hàng này!', 404)
+      new ErrorHandler("Không tìm thấy đơn hàng với mã đơn hàng này!", 404)
     );
   }
 
@@ -90,26 +88,23 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
 
   if (!order) {
     return next(
-      new ErrorHandler('Không tìm thấy đơn hàng với mã đơn hàng này!', 404)
+      new ErrorHandler("Không tìm thấy đơn hàng với mã đơn hàng này!", 404)
     );
   }
 
-  if (order.orderStatus === 'Delivered') {
-    return next(new ErrorHandler('Đơn hàng đã được giao', 400));
+  if (order.orderStatus === "Delivered") {
+    return next(new ErrorHandler("Đơn hàng đã được giao", 400));
   }
 
   order.orderStatus = req.body.status;
 
-  if (req.body.status === 'Delivered') {
+  if (req.body.status === "Delivered") {
     order.deliveredAt = Date.now();
-    if (!order.paymentInfo)
-    {
-      const paymentInfo = { id: req.params.id, status: 'succeeded' };
+    if (!order.paymentInfo) {
+      const paymentInfo = { id: req.params.id, status: "succeeded" };
       order.paymentInfo = paymentInfo;
     }
-
-  }
-  else if (req.body.status === 'Cancel') {
+  } else if (req.body.status === "Cancel") {
     order.orderItems.forEach(async (order_) => {
       await updateStock_increase(order_.product, order_.quantity);
     });
@@ -142,7 +137,7 @@ exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {
 
   if (!order) {
     return next(
-      new ErrorHandler('Không tìm thấy đơn hàng với mã đơn hàng này!', 404)
+      new ErrorHandler("Không tìm thấy đơn hàng với mã đơn hàng này!", 404)
     );
   }
 
@@ -150,6 +145,6 @@ exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: 'Xoá đơn hàng thành cống',
+    message: "Xoá đơn hàng thành cống",
   });
 });

@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema(
   {
     shippingInfo: {
-      fullName: {
+      name: {
         type: String,
         required: true,
       },
@@ -72,11 +72,6 @@ const orderSchema = new mongoose.Schema(
     },
 
     itemsPrice: {
-      type: Number,
-      default: 0,
-      required: true,
-    },
-    taxPrice: {
       type: Number,
       default: 0,
       required: true,

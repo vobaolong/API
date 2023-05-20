@@ -38,17 +38,15 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   if (!email || !password) {
     return next(new ErrorHandler("Vui lòng nhập Email và mật khẩu", 400));
   }
-  
 
   // kiểm tra email và password trong DB
   // dùng select vì mật khẩu đã hash nên kh thể nhìn
   const user = await User.findOne({ email }).select("+password");
-  
+
   // nếu không tìm thấy user trong DB
   if (!user) {
     return next(new ErrorHandler("Email hoặc mật khẩu không chính xác", 401));
   }
- 
 
   // kiểm tra password có khớp với DB không bằng comparePassword method
   const isPasswordMatched = await user.comparePassword(password);
@@ -57,7 +55,6 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Email hoặc mật khẩu không chính xác", 401));
   }
-  
 
   sendToken(user, 200, res, "Đăng nhập thành công");
 });
@@ -85,43 +82,32 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler("Không tìm thấy người dùng sử dụng Email này", 404)
     );
   }
-
-  // Get ResetPassword Token
   const resetToken = user.getResetPasswordToken();
-
-  // lưu giá trị trong schema của passwordtoken và passwordexpire
   await user.save({ validateBeforeSave: false });
-
-  // cho localserver
-  // ${process.env.FRONTEND_URL}
   const resetPasswordUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
 
-  const message = `Đường Link thay đổi mật khẩu của bạn :- \n\n ${resetPasswordUrl}\n\n Nếu bạn chưa yêu cầu email này thì hãy bỏ qua nó`;
+  const message = `Đường Link thay đổi mật khẩu của bạn :- \n\n ${resetPasswordUrl}\n\n Nếu bạn chưa yêu cầu Emailxin vui lòng bỏ qua!`;
 
   try {
     // gửi email cho người dùng sau khi gửi mã thông báo
     await sendEmail({
       email: user.email,
-      subject: `G101 Store Password Recovery`,
+      subject: `JAMILA Password Recovery`,
       message,
     });
 
     res.status(200).json({
       success: true,
-      message: `Đã gửi đến Email ${user.email}`,
+      message: `Đã gửi liên kết khôi phục mật khẩu đến ${user.email}`,
     });
   } catch (error) {
-    // if there is error than we already generated a these below token so it's duty define them as undefined
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
-    // so again save these values in schema
     await user.save({ validateBeforeSave: false });
-
     return next(new ErrorHandler(error.message, 500));
   }
 });
-
 // Reset password
 exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
   // create token hash
@@ -140,18 +126,13 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler("Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn", 400)
     );
   }
-
   if (req.body.password !== req.body.confirmPassword) {
     return next(new ErrorHandler("Mật khẩu không hợp lệ", 400));
   }
-
   user.password = req.body.password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
-
-  // lưu tất cả thông tin trên vào schema
   await user.save();
-
   sendToken(user, 200, res);
 });
 

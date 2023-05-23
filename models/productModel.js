@@ -15,6 +15,10 @@ const productSchema = mongoose.Schema(
       type: Number,
       required: [true, "Vui lòng nhập giá sản phẩm"],
     },
+    discount: {
+      type: Number,
+      default: 0,
+    },
     ratings: {
       type: Number,
       default: 0,
